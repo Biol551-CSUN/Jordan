@@ -1,0 +1,66 @@
+---
+title: "Meteorite Map"
+author: "Sejordan"
+date: "3/9/2021"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning=FALSE, message=FALSE)
+```
+
+## Introduction  
+Here we have data on meteorite strikes across the globe going back many years. We will clean up this data a bit and see if we can produce a map that shows the most recent of these strikes and illustrates their distribution by mass.
+
+## Libraries
+We will need the following libraries
+```{r}
+# Load libraries
+library(tidyverse)
+library(here)
+library(maps)
+library(mapdata)
+library(mapproj)
+
+```
+
+## Prepare data
+```{r}
+#read in dats
+meteorites <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-06-11/meteorites.csv")
+
+#filter by just this time interval
+meteorites_clean <- meteorites %>%
+  filter(year == 1990:2013)  
+
+#get data for the entire world
+world<-map_data("world")
+head(world)
+```
+
+## Make a map using ggplot code
+```{r label, fig.align="center"}
+
+ggplot()+
+  geom_polygon(data = world, 
+               aes(x = long, 
+                   y = lat, 
+                   group = group,
+                   fill = region),  
+               color = "black")+
+  geom_point(data = meteorites_clean, 
+             aes(x = long,
+                 y = lat, size = mass))+
+  labs(x = "", y = "", title = "World Map of Meteorite Strikes from 1990-2013")+
+  guides(fill = FALSE)+
+  theme_minimal()+
+  theme(panel.background = element_rect(fill = "lightblue"))+
+  coord_map(projection = "mercator",
+            xlim = c(-180,180))+
+  ggsave(here("Week_7","Output","Meteorite Map.png"))
+
+```
