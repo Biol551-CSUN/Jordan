@@ -1,0 +1,78 @@
+---
+title: "Good Plot Bad Plot"
+author: "Shane Jordan"
+date: "3/22/2021"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    toc_depth: 4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning=FALSE, 
+                      message=FALSE)
+```
+
+## **Introduction**
+For this exercise in good and bad plot making, I will use long-term average precipitation data collected by the Western Regional Climate Center for 31 sites across the Mojave Desert and plot it against the elevation of each site. Because precipitation may vary depending on longitude due to monsoonal climate influence from the east, the goal is to make a scatter plot that separates site by longitude (east or west of 116 degrees). Then, use the plot to show the effect of elevation on precipitation, and how this effect is distinguished by longitude. This might show if higher elevations of the east Mojave receive more rainfall than similarly high elevations of the west Mojave.
+
+## **Libraries and Data**
+```{r}
+#libraries
+library(tidyr)
+library(dplyr)
+library(car)
+library(moments)
+library(tidyverse)
+library(here)
+library(ggplot2)
+
+#Import the data
+precip <- read_csv('C:/Users/pfura/Documents/Biol 551L/Jordan/Week_7/Data/precipitation.csv')
+
+#make a factorial linear model
+model1<-lm(precip ~ longitude*elev, data=precip)
+
+#prep data to plot
+predprecip<-predict(model1) #makes regression lines 
+graphdata<-cbind(precip, predprecip) 
+```
+
+## **Good Plot**
+Looking at the plot, it appears that precipitation depends upon elevation at all 31 sites, however, the more eastern sites seem to receive more precipitation. There might
+be evidence of the monsoon influencing the eastern Mojave climate.
+
+```{r}
+precip %>%
+  rename(Longitude=longitude) %>% #first, we need to rename "ï..longitude" as     "Longitude"
+  ggplot(aes(elev, precip, color=Longitude)) +
+  theme_bw()+
+  theme(legend.title=element_text(colour="black", size=12), 
+        axis.text.x=element_text(face="bold", color="black", size=10), 
+        axis.text.y=element_text(face="bold", color="black", size=10), 
+        axis.title.x = element_text(color="black", size=12, face="bold"), 
+        axis.title.y = element_text(color="black", size=12, face="bold"),
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  geom_point() + geom_line(aes(y=predprecip)) +
+  labs(x="Elevation (m)", y="Precipitation (cm)", fill="longitude")
+```
+
+## **Bad Plot**
+Here, the data are pooled, so the effect of latitude is ignored. The y-axis is uninformative; the scale is so broad that it kind of obscures the effect of elevation; values are not labeled and the oversized title indicates no units. The tiny red x-axis values are not too appealing, and the title is not labeled. Because the x-axis range goes from 0-2000, this configuration omits one data point from Death Valley that was at an elevation below sea level and thus a value less than zero. The trend-line is hardly appropriate in this fashion as it seems to imply an irrelevant relationship between the dependent and independent variables. The thin purple bar plots over the gray background has a disturbing visual effect and is the final nail in the bad plot coffin. 
+```{r}
+precip %>%
+  ggplot(aes(elev, precip)) +
+  theme_dark()+
+  theme(legend.title=element_text(colour="black", size=1), 
+        axis.text.x=element_text(face="bold", color="red", size=5),
+        axis.text.y=element_text(face="bold", color="black", size=0.1),
+        axis.title.y = element_text(color="blue", size=20, face="bold"),
+        panel.grid.major=element_line(), panel.grid.minor=element_blank()) +
+        geom_col(color="purple") + geom_line(aes(y=predprecip)) +
+        scale_x_continuous(limits=c(0,2000))+
+        scale_y_continuous(limits=c(-200,200)) +
+        labs(x="", y="precip")
+```
+
