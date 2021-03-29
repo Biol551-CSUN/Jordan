@@ -1,0 +1,94 @@
+---
+title: "Week 8 Group Lab"
+author: "Shane Jordan"
+date: "3/29/2021"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    toc_depth: 6
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning=FALSE, 
+                      message=FALSE)
+```
+
+## **Introduction**
+Here we mada a couple functions. First, a simple function that converts temperature from celcius to farenheit. Then, a function that makes a plot. The plot function is at the end tested with some variables from the chemdataset.
+
+## **Libraries**
+```{r}
+library(tidyverse)
+library(here)
+library(ggplot2)
+library(PNWColors)
+```
+
+
+## **Temperature Conversion**
+```{r}
+#first make function to convert Celcius to Farenheit
+C_F <- function(temp_C) {
+  temp_F <- (temp_C*(9/5))+32
+return(temp_F)
+}
+```
+
+## **Test Conversion Function**
+```{r}
+C_F(0)
+C_F(32)
+C_F(100)
+```
+
+
+## **Plot Function**
+```{r}
+#bring in data
+chemdata<-read_csv(here("Week_8/Data/chemicaldata_maunalua.csv"))
+
+#make function an if-else statement
+plotfx<-function(data = chemdata, x, y , ylim, Time="Day"){ 
+  pal<-pnw_palette("Lake",3, type = "discrete")
+if(Time == "Day"){
+  data %>%
+    filter(Time == "Day") %>%
+    ggplot(aes(x = {{x}}, y = {{y}}, color = Site))+
+    geom_point()+
+    scale_color_manual("Site", values=pal)+
+    theme_gray()
+}
+else{
+  data %>%
+    filter(Time == "Night") %>%
+  ggplot(aes(x = {{x}}, y = {{y}}, color = Site))+
+    geom_point()+
+    scale_color_manual("Site", values=pal)+
+    theme_gray() 
+}
+}
+```
+
+## **Test Plot Function**
+```{r, fig.align = "center"}
+#test plot function
+plotfx(x = Zone, y = pH)+
+  labs(x = "", y = "pH")+
+  scale_y_continuous(limits = c(7.5,9.0))+
+  ggsave(here("Week_8","Output","ZonepH.png"),
+         width = 7, height = 5)
+
+plotfx(x = Tide_time, y = Temp_in)+
+  labs(x = "Tide", y = "Temperature (C)")+
+  ggsave(here("Week_8","Output","TideTemps.png"),
+         width = 7, height = 5)
+
+plotfx(x = Season, y = Salinity)+
+  labs(x = "Season", y = "Salinity")+
+  ggsave(here("Week_8","Output","SeasonSalinity.png"),
+         width = 5, height = 5)
+
+```
+
